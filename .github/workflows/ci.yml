@@ -11,30 +11,26 @@ permissions:
   contents: read
 
 jobs:
-  build-and-safety-checks:
+  ubuntu-22-04:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Build all targets
+      - name: Build every binary
         run: make all
 
-      - name: Run safe program with benign input
+      - name: Show supported targets
+        run: make help
+
+      - name: Run safe target with benign input
         run: printf 'learner\n' | make run-safe
 
-      - name: Build AddressSanitizer target
-        run: |
-          mkdir -p build
-          gcc -Wall -Wextra -Wpedantic -g -O0 -fno-omit-frame-pointer \
-            -fsanitize=address -o build/asan src/vulnerable.c
-
-      - name: Assert oversized input is detected by AddressSanitizer
+      - name: Confirm AddressSanitizer detects the stack overflow
         shell: bash
         run: |
           set +e
-          printf '%s\n' "$(python3 -c 'print("A" * 200)')" | \
-            ASAN_OPTIONS=detect_leaks=0:halt_on_error=1 ./build/asan >asan.log 2>&1
+          python3 -c 'print("A" * 200)' | ASAN_OPTIONS=detect_leaks=0:halt_on_error=1 ./build/asan >asan.log 2>&1
           status=$?
           set -e
           cat asan.log
