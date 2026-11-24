@@ -122,6 +122,7 @@ Use <code>--n 8</code> for a 64-bit target and <code>--n 4</code> for a 32-bit t
 3. [Mitigations](docs/mitigations.md) — compare canary, ASLR, NX, PIE, RELRO, and FORTIFY.
 4. [Secure C](docs/secure-c.md) — unsafe-to-safe API mapping and explicit length checks.
 5. [Graded exercises](docs/exercises.md) — eight beginner, intermediate, and stretch exercises.
+6. [Known issues](docs/known-issues.md) — defects found in the lab, their cause, and the commit that fixed them.
 
 ## Topics
 
