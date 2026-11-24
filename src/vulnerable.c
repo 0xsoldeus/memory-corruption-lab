@@ -33,7 +33,7 @@ void vulnerable(char *input) {
 }
 
 int main(int argc, char **argv) {
-    char input[512];
+    static char input[512];
 
     if (argc > 1 && strcmp(argv[1], "--layout") == 0) {
         print_layout();
