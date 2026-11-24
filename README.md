@@ -89,7 +89,8 @@ Use <code>--n 8</code> for a 64-bit target and <code>--n 4</code> for a 32-bit t
 .
 ├── .github/
 │   └── workflows/
-│       └── ci.yml
+│       ├── ci.yml
+│       └── release.yml
 ├── docs/
 │   ├── exercises.md
 │   ├── gdb.md
@@ -107,6 +108,7 @@ Use <code>--n 8</code> for a 64-bit target and <code>--n 4</code> for a 32-bit t
 ├── LICENSE
 ├── Makefile
 ├── README.md
+├── RELEASE_NOTES.md
 ├── requirements.txt
 └── SECURITY.md
 ~~~
