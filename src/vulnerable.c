@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int layout_marker = 1;
@@ -10,13 +11,15 @@ static void print_layout(void) {
 
 /*
  * Local-only ret2win exercise target.
- * This function is not a shell and executes no supplied code.
+ * This function executes no supplied code and exits after its success banner.
  */
 #if defined(__GNUC__)
 __attribute__((noinline, force_align_arg_pointer))
 #endif
 void win(void) {
     puts("\n[+] WIN: local ret2win demonstration reached win()!");
+    fflush(stdout);
+    exit(EXIT_SUCCESS);
 }
 
 /*
