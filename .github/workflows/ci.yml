@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-safety-checks:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build all targets
+        run: make all
+
+      - name: Run safe program with benign input
+        run: printf 'learner\n' | make run-safe
+
+      - name: Build AddressSanitizer target
+        run: |
+          mkdir -p build
+          gcc -Wall -Wextra -Wpedantic -g -O0 -fno-omit-frame-pointer \
+            -fsanitize=address -o build/asan src/vulnerable.c
+
+      - name: Assert oversized input is detected by AddressSanitizer
+        shell: bash
+        run: |
+          set +e
+          printf '%s\n' "$(python3 -c 'print("A" * 200)')" | \
+            ASAN_OPTIONS=detect_leaks=0:halt_on_error=1 ./build/asan >asan.log 2>&1
+          status=$?
+          set -e
+          cat asan.log
+          if [ "$status" -eq 0 ]; then
+            echo "Expected AddressSanitizer to reject oversized input, but the process exited 0."
+            exit 1
+          fi
+          grep -F "stack-buffer-overflow" asan.log
