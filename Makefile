@@ -12,7 +12,7 @@ else
 VULN_ARCH :=
 endif
 
-.PHONY: all vuln safe asan canary run-safe run-vuln demo-canary demo-aslr clean help
+.PHONY: all vuln safe asan canary run-safe run-vuln demo-canary demo-aslr clean help docker-build docker-shell
 
 all: vuln safe asan canary
 
@@ -55,6 +55,12 @@ demo-aslr: safe
 clean:
 	rm -rf $(BUILD)
 
+docker-build:
+	docker build -t mcl .
+
+docker-shell:
+	docker build -t mcl . && docker run --rm -it -v "$$PWD":/lab -w /lab mcl
+
 help:
 	@echo "Memory Corruption Lab build targets:"
 	@echo "  make all          Build vulnerable, safe, ASan, and canary binaries"
@@ -67,5 +73,7 @@ help:
 	@echo "  make demo-canary  Trigger and verify a local stack-canary detection"
 	@echo "  make demo-aslr    Print PIE data and stack addresses across runs"
 	@echo "  make clean        Remove build artifacts"
+	@echo "  make docker-build Build the canonical 32-bit Docker image (tag: mcl)"
+	@echo "  make docker-shell Build the image and open a shell in it with the repo mounted at /lab"
 	@echo "  make help         Show this help"
 	@if [ "$(M32_AVAILABLE)" = yes ]; then echo "Vulnerable target architecture: 32-bit (-m32)"; else echo "Vulnerable target architecture: 64-bit (32-bit multilib unavailable)"; fi

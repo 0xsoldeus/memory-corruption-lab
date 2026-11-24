@@ -31,6 +31,8 @@ sudo apt-get update
 sudo apt-get install -y build-essential gdb binutils python3 python3-venv python3-pip
 ~~~
 
+Alternatively, run `make docker-shell` to open a shell in the canonical 32-bit environment, which builds the repository image with the 32-bit multilib toolchain and mounts this repository at `/lab`.
+
 ## Quick start
 
 ~~~bash
