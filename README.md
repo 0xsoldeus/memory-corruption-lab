@@ -45,7 +45,7 @@ printf 'learner\n' | make run-safe
 
 To run the deliberately vulnerable target interactively, use <code>make run-vuln</code>. Keep it local and use only disposable test input.
 
-The Makefile tests whether GCC can link a minimal 32-bit program. It selects <code>-m32</code> for the vulnerable target only when that test succeeds. Otherwise, it builds a 64-bit target and prints that choice in <code>make help</code>. The Ubuntu 22.04 CI runner used for this repository did not have the 32-bit multilib toolchain, so CI verifies the 64-bit fallback.
+The Makefile tests whether GCC can link a minimal 32-bit program. It selects <code>-m32</code> for the vulnerable target only when that test succeeds. Otherwise, it builds a 64-bit target and prints that choice in <code>make help</code>. The stock Ubuntu 22.04 CI runner does not have the 32-bit multilib toolchain, so the <code>ubuntu-22-04</code> job verifies the 64-bit fallback. The <code>build-32bit</code> job builds the Docker image and verifies the 32-bit target inside the container.
 
 ## Build targets
 
@@ -55,11 +55,14 @@ The Makefile tests whether GCC can link a minimal 32-bit program. It selects <co
 | <code>make vuln</code> | Build the intentionally vulnerable local target |
 | <code>make safe</code> | Build the hardened safe example |
 | <code>make asan</code> | Build the AddressSanitizer-instrumented target |
+| <code>make canary</code> | Build the stack-canary demonstration target |
 | <code>make run-safe</code> | Run the safe program; input is read from stdin |
 | <code>make run-vuln</code> | Run the vulnerable program; input is read from stdin |
 | <code>make demo-canary</code> | Verify a local stack-canary diagnostic |
 | <code>make demo-aslr</code> | Print PIE global-data and stack addresses across runs |
 | <code>make clean</code> | Remove build output |
+| <code>make docker-build</code> | Build the canonical 32-bit Docker image, tagged <code>mcl</code> |
+| <code>make docker-shell</code> | Build that image and open a shell in it with the repository mounted at <code>/lab</code> |
 | <code>make help</code> | Print target help and vulnerable-binary architecture choice |
 
 ### AddressSanitizer exercise
@@ -96,6 +99,7 @@ Use <code>--n 8</code> for a 64-bit target and <code>--n 4</code> for a 32-bit t
 ├── docs/
 │   ├── exercises.md
 │   ├── gdb.md
+│   ├── known-issues.md
 │   ├── mitigations.md
 │   ├── secure-c.md
 │   └── walkthrough.md
@@ -107,6 +111,7 @@ Use <code>--n 8</code> for a 64-bit target and <code>--n 4</code> for a 32-bit t
 ├── .gitignore
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
+├── Dockerfile
 ├── LICENSE
 ├── Makefile
 ├── README.md
